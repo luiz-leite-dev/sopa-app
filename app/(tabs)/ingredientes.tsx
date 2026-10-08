@@ -1,5 +1,5 @@
 import { Chip } from '@/components/Chip';
-import { SortableItem, SortableList } from '@/components/SortableList';
+import { SortableItem, SortableList } from '@/components/SortableList2';
 import { ScrollView, Text, View } from '@/components/Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
@@ -321,15 +321,31 @@ function IngredientRanking({
   onBack,
   onConfirm,
 }: IngredientRankingProps) {
-  const sortableValues: SortableItem[] = selectedValues.map((value) => ({
-    id: value,
-    label: value,
-  }));
+  const [sortableValues, setSortableValues] = useState<SortableItem[]>(
+    () =>
+      selectedValues.map((value) => ({
+        id: value,
+        label: value,
+      }))
+  );
+  console.log(
+    `[${Platform.OS}] selectedValues:`,
+    selectedValues
+  );
+
+  console.log(
+    `[${Platform.OS}] sortableValues:`,
+    sortableValues.map((item) => item.id)
+  );
   function onReorder(data: SortableItem[]) {
-    console.log('Reordenou');
+    console.log(
+      `[${Platform.OS}] REORDER:`,
+      data.map((item) => item.id)
+    );
+    setSortableValues(data);
   };
   return (
-    <View>
+    <View  style={styles.container}>
       <Text>Agora coloque em ordem de importância para você.</Text>
       <SortableList
         data={sortableValues}

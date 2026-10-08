@@ -18,22 +18,20 @@ export function SortableList({
   const renderItem = ({
     item,
     drag,
-    isActive,
+    // isActive,
   }: RenderItemParams<SortableItem>) => {
     return (
       <Pressable
+        key={item.id}
         onLongPress={drag}
-        delayLongPress={150}
+        delayLongPress={300}
         style={[
-          styles.item,
-          isActive && styles.itemActive,
+            styles.item,
+            // isActive && styles.itemActive,
         ]}
-      >
+        >
         <Text style={styles.handle}>⋮⋮</Text>
-
-        <Text style={styles.label}>
-          {item.label}
-        </Text>
+        <Text style={styles.label}>{item.label}</Text>
       </Pressable>
     );
   };
@@ -44,7 +42,6 @@ export function SortableList({
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
       onDragEnd={({ data }) => onReorder(data)}
-      activationDistance={8}
     />
   );
 }
@@ -62,7 +59,7 @@ const styles = StyleSheet.create({
 
   itemActive: {
     opacity: 0.85,
-    transform: [{ scale: 1.02 }],
+    // transform: [{ scale: 1.02 }],
   },
 
   handle: {
