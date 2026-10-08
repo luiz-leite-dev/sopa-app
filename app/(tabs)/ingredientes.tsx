@@ -1,4 +1,5 @@
 import { Chip } from '@/components/Chip';
+import { SortableItem, SortableList } from '@/components/SortableList';
 import { ScrollView, Text, View } from '@/components/Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
@@ -190,14 +191,14 @@ export default function Ingredientes() {
     });
   }
 
-  function confirmTopValues(topValues: Value[]) {
+  function confirmTopValues(topValues: Value[], completed: Boolean) {
     if (topValues.length < 7) {
       return;
     }
 
     updateIngredients({
       topValues,
-      stage: 'completed',
+      stage: completed ? 'completed' : 'ranking',
     });
   }
 
@@ -311,7 +312,7 @@ type IngredientRankingProps = {
   selectedValues: Value[];
   topValues: Value[];
   onBack: () => void;
-  onConfirm: (topValues: Value[]) => void;
+  onConfirm: (topValues: Value[], completed: Boolean) => void;
 };
 
 function IngredientRanking({
@@ -320,15 +321,34 @@ function IngredientRanking({
   onBack,
   onConfirm,
 }: IngredientRankingProps) {
+  const sortableValues: SortableItem[] = selectedValues.map((value) => ({
+    id: value,
+    label: value,
+  }));
+  function onReorder(data: SortableItem[]) {
+    console.log('Reordenou');
+  };
   return (
     <View>
-      <Text>Ranking</Text>
-      <Pressable style={({ hovered }) => [
-        styles.button,
-        hovered && styles.buttonHover
-      ]} onPress={onBack}>
-        <Text style={styles.buttonText}>Voltar</Text>
-      </Pressable>
+      <Text>Agora coloque em ordem de importância para você.</Text>
+      <SortableList
+        data={sortableValues}
+        onReorder={onReorder}
+      />
+      <View style={styles.buttonsContainer}>
+        <Pressable style={({ hovered }) => [
+          styles.button,
+          hovered && styles.buttonHover
+        ]} onPress={onBack}>
+          <Text style={styles.buttonText}>Voltar</Text>
+        </Pressable>
+        <Pressable style={({ hovered }) => [
+          styles.button,
+          hovered && styles.buttonHover
+        ]} onPress={onConfirm}>
+          <Text style={styles.buttonText}>Continuar</Text>
+        </Pressable>
+      </View>
     </View>
   )
 }
@@ -337,15 +357,31 @@ function MyIngredients() {
   return <Text>Meus Ingredientes</Text>
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({  
   buttonHover: {
     backgroundColor: '#f3a040ff',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
   },
   buttonText: {
     fontWeight: 'bold',
     fontSize: 16,
     lineHeight: 24,
     textAlign: 'center',
+  },
+  button: {
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 2,
+    margin: 12,
+    padding: 12,
+    textAlign: 'center',
+    fontWeight: '600',
+    maxHeight: 50,
+  },
+  buttonDisabled: {
+    opacity: 0.4,
   },
   chips: {
     flex: 1,
@@ -358,17 +394,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     flex: 1,
-  },
-  button: {
-    borderRadius: 8,
-    borderWidth: 2,
-    marginTop: 20,
-    padding: 12,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  buttonDisabled: {
-    opacity: 0.4,
   },
   instruction: {
     fontSize: 14,
