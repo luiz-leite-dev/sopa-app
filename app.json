@@ -8,7 +8,14 @@
     "scheme": "sopaapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "youversion",
+          "bible"
+        ]
+      },
+      "bundleIdentifier": "com.luizleitedev.sopa-app"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +40,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
