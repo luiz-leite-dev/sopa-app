@@ -1,5 +1,5 @@
 import { Chip } from '@/components/Chip';
-import { SortableItem, SortableList } from '@/components/SortableList2';
+import { SortableItem, SortableList } from '@/components/SortableList';
 import { ScrollView, Text, View } from '@/components/Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
@@ -182,7 +182,7 @@ export default function Ingredientes() {
   }
 
   function confirmSelection() {
-    if (ingredients.selectedValues.length < 7) {
+    if (ingredients.selectedValues.length !== 7) {
       return;
     }
 
@@ -246,20 +246,20 @@ function IngredientSelection({
   onToggleValue,
   onConfirm
 }: IngredientSelectionProps) {
-  const sortedSelectedValues = [...selectedValues].sort((a, b) =>
-    a.localeCompare(b, 'pt-BR')
+  const sortedSelectedValues = selectedValues && [...selectedValues].sort((a, b) =>
+    a?.localeCompare(b, 'pt-BR')
   );
 
-  const canContinue = selectedValues.length >= 7;
+  const canContinue = selectedValues.length === 7;
 
   return (    
     <View style={styles.container}>
       <Text style={styles.paragraph}>Quais ingredientes você gostaria de colocar na sua sopa?</Text>
-      <Text style={styles.paragraph}>Escolha todos que fazem sentido para você.</Text>
-      <Text style={styles.sectionTitle}>Seus ingredientes ({selectedValues.length})</Text>
+      <Text style={styles.paragraph}>Escolha 7 que fazem sentido para você.</Text>
+      <Text style={styles.sectionTitle}>Seus ingredientes ({selectedValues.length}/7)</Text>
       {selectedValues.length === 0 ? (
         <Text style={styles.instruction}>
-          Selecione pelo menos 7 abaixo.
+          Selecione 7 para continuar.
         </Text>
       ) : (
       <>
@@ -285,14 +285,23 @@ function IngredientSelection({
         style={styles.chips}
         contentContainerStyle={styles.chipsContent}
       >
-        {AVAILABLE_VALUES.map(value => (
-          <Chip
-            key={value}
-            label={value}
-            selected={selectedValues.includes(value)}
-            onPress={() => onToggleValue(value)}
-          />
-        ))}
+        {AVAILABLE_VALUES.map(value => {
+          const selected = selectedValues.includes(value);
+
+          return (
+            <Chip
+              key={value}
+              label={value}
+              selected={selectedValues.includes(value)}
+              onPress={() => {
+                if (selected || selectedValues.length < 7) {
+                  onToggleValue(value);
+                }
+              }
+              }
+            />
+          )
+        })}
       </ScrollView>
       <Pressable
         style={({ hovered }) => [
@@ -328,25 +337,13 @@ function IngredientRanking({
         label: value,
       }))
   );
-  console.log(
-    `[${Platform.OS}] selectedValues:`,
-    selectedValues
-  );
-
-  console.log(
-    `[${Platform.OS}] sortableValues:`,
-    sortableValues.map((item) => item.id)
-  );
   function onReorder(data: SortableItem[]) {
-    console.log(
-      `[${Platform.OS}] REORDER:`,
-      data.map((item) => item.id)
-    );
     setSortableValues(data);
   };
   return (
     <View  style={styles.container}>
       <Text>Agora coloque em ordem de importância para você.</Text>
+      <Text> </Text>
       <SortableList
         data={sortableValues}
         onReorder={onReorder}
