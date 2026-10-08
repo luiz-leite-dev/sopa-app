@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chipsContent: {
-    flexDirection: 'column',
-    // flexWrap: 'wrap',
-    // gap: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   container: {
     padding: 16,

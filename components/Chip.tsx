@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
 
   icon: { 
-    marginRight: 4, 
+    // marginRight: 4,
   },
 
   selected: {
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: '#444',
-    marginRight: 21,
+    width: 112,
   },
 
   selectedLabel: {
