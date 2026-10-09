@@ -14,7 +14,7 @@ import {
   TextInput
 } from 'react-native';
 
-const INGREDIENTS_STORAGE_KEY = '@SOPA:user-ingredients';
+const INGREDIENTS_STORAGE_KEY = '@SOPA:ingredients';
 const RECIPE_STORAGE_KEY = '@SOPA:recipe';
 
 type SelectedValue = {
@@ -379,7 +379,9 @@ export default function Receita() {
                 {(selector === 'main'
                   ? selectedValues
                   : secondaryOptions
-                ).map(item => {
+                ).slice()
+                .sort((a, b) => a.order - b.order)
+                .map(item => {
                   const selected =
                     selector === 'main'
                       ? recipe.mainIngredient === item.value

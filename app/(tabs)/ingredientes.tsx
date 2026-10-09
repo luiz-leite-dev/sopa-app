@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 
-const STORAGE_KEY = '@SOPA:user-ingredients';
+const STORAGE_KEY = '@SOPA:ingredients';
 
 type IngredientStage =
   | 'selection'
