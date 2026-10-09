@@ -2,6 +2,7 @@ import { Chip } from '@/components/Chip';
 import { SortableItem, SortableList } from '@/components/SortableList';
 import { ScrollView, Text, View } from '@/components/Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 
@@ -210,12 +211,6 @@ export default function Ingredientes() {
     });
   }
 
-  function editRanking() {
-    updateIngredients({
-      stage: 'ranking',
-    });
-  }
-
   switch (ingredients.stage) {
     case 'selection':
       return <IngredientSelection 
@@ -225,14 +220,8 @@ export default function Ingredientes() {
       />;
 
     case 'ranking':
-      return <IngredientRanking 
-          selectedValues={ingredients.selectedValues}
-          onBack={editSelection}
-          onConfirm={confirmRanking}
-      />;
-
     case 'completed':
-      return <MyIngredients 
+      return <IngredientRanking 
           selectedValues={ingredients.selectedValues}
           onBack={editSelection}
           onConfirm={confirmRanking}
@@ -259,56 +248,58 @@ function IngredientSelection({
 
   return (    
     <View style={styles.container}>
-      <Text style={styles.paragraph}>Quais ingredientes você gostaria de colocar na sua sopa?</Text>
-      <Text style={styles.paragraph}>Escolha 7 que fazem sentido para você.</Text>
-      <Text style={styles.sectionTitle}>Seus ingredientes ({selectedValues.length}/7)</Text>
-      {selectedValues.length === 0 ? (
-        <Text style={styles.instruction}>
-          Selecione 7 para continuar.
-        </Text>
-      ) : (
-      <>
-        <ScrollView
-          horizontal={true}
-          showsHorizontalScrollIndicator={true}
-          style={styles.selectedScroll}
-          contentContainerStyle={styles.selectedChips}
+      <View style={styles.content}>
+        <Text style={styles.paragraph}>Quais ingredientes você gostaria de colocar na sua sopa?</Text>
+        <Text style={styles.paragraph}>Escolha 7 que fazem sentido para você.</Text>
+        <Text style={styles.sectionTitle}>Seus ingredientes ({selectedValues.length}/7)</Text>
+        {selectedValues.length === 0 ? (
+          <Text style={styles.instruction}>
+            Selecione 7 para continuar.
+          </Text>
+        ) : (
+        <>
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={true}
+            style={styles.selectedScroll}
+            contentContainerStyle={styles.selectedChips}
+          >
+            {sortedSelectedValues.map(item => (
+              <Chip
+                key={item.value}
+                label={item.value}
+                selected
+                onPress={() => onToggleValue(item.value)}
+              />
+            ))}
+          </ScrollView>
+        </>
+        )}
+        <Text style={styles.sectionTitle}>Ingredientes disponíveis</Text>
+        <ScrollView 
+          style={styles.chips}
+          contentContainerStyle={styles.chipsContent}
         >
-          {sortedSelectedValues.map(item => (
-            <Chip
-              key={item.value}
-              label={item.value}
-              selected
-              onPress={() => onToggleValue(item.value)}
-            />
-          ))}
-        </ScrollView>
-      </>
-      )}
-      <Text style={styles.sectionTitle}>Ingredientes disponíveis</Text>
-      <ScrollView 
-        style={styles.chips}
-        contentContainerStyle={styles.chipsContent}
-      >
-        {AVAILABLE_VALUES.map(value => {
-          const selected = selectedValues.some(
-              item => item.value === value
-            );
-          return (
-            <Chip
-              key={value}
-              label={value}
-              selected={selected}
-              onPress={() => {
-                if (selected || selectedValues.length < 7) {
-                  onToggleValue(value);
+          {AVAILABLE_VALUES.map(value => {
+            const selected = selectedValues.some(
+                item => item.value === value
+              );
+            return (
+              <Chip
+                key={value}
+                label={value}
+                selected={selected}
+                onPress={() => {
+                  if (selected || selectedValues.length < 7) {
+                    onToggleValue(value);
+                  }
                 }
-              }
-              }
-            />
-          )
-        })}
-      </ScrollView>
+                }
+              />
+            )
+          })}
+        </ScrollView>
+      </View>
       <Pressable
         style={({ hovered }) => [
           styles.button,
@@ -343,6 +334,7 @@ function IngredientRanking({
           label: item.value,
         }))
   );
+  const router = useRouter();
 
   function handleReorder(data: SortableItem[]) {
     setSortableValues(data);
@@ -362,17 +354,20 @@ function IngredientRanking({
       value: item.id,
       order: index + 1,
     })), true);
+    router.navigate('/receita')
   }
 
   return (
     <View style={styles.container}>
-      <Text>Agora coloque em ordem de importância para você.</Text>
-      <Text> </Text>
+      <View style={styles.content}>
+        <Text>Coloque em ordem de importância para você.</Text>
+        <Text> </Text>
 
-      <SortableList
-        data={sortableValues}
-        onReorder={handleReorder}
-      />
+        <SortableList
+          data={sortableValues}
+          onReorder={handleReorder}
+        />
+      </View>
 
       <View style={styles.buttonsContainer}>
         <Pressable
@@ -392,49 +387,20 @@ function IngredientRanking({
           ]}
           onPress={handleConfirm}
         >
-          <Text style={styles.buttonText}>Avançar</Text>
+          <Text style={styles.buttonText}>Continuar</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-type MyIngredientsProps = {
-  selectedValues: SelectedValue[];
-  onBack: () => void;
-  onConfirm: (selectedValues: SelectedValue[], completed: boolean) => void;
-};
-
-function MyIngredients({
-  selectedValues,
-  onBack,
-  onConfirm,
-}: MyIngredientsProps) {
-  return (
-    <View>
-      <Text>Meus Ingredientes</Text>
-      <Text> </Text>
-      <View style={styles.buttonsContainer}>
-        <Pressable
-          style={({ hovered }) => [
-            styles.button,
-            hovered && styles.buttonHover,
-          ]}
-          onPress={onBack}
-        >
-          <Text style={styles.buttonText}>Voltar</Text>
-        </Pressable>
-      </View>
-    </View>
-  )
-}
-
-const styles = StyleSheet.create({  
+const styles = StyleSheet.create({
   buttonHover: {
     backgroundColor: '#f3a040ff',
   },
   buttonsContainer: {
     flexDirection: 'row',
+    gap: 12,
   },
   buttonText: {
     fontWeight: 'bold',
@@ -446,7 +412,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 8,
     borderWidth: 2,
-    margin: 12,
     padding: 12,
     textAlign: 'center',
     fontWeight: '600',
@@ -457,6 +422,7 @@ const styles = StyleSheet.create({
   },
   chips: {
     flex: 1,
+    marginBottom: 12,
   },
   chipsContent: {
     flexDirection: 'row',
@@ -465,6 +431,9 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
+    flex: 1,
+  },
+  content: {
     flex: 1,
   },
   instruction: {
