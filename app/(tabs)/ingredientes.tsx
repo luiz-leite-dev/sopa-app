@@ -14,6 +14,11 @@ type IngredientStage =
 
 type Value = string;
 
+type SelectedValue = {
+  value: Value;
+  order: number;
+};
+
 const AVAILABLE_VALUES: Value[] = [
   'Alegria',
   'Altruísmo',
@@ -86,14 +91,12 @@ const AVAILABLE_VALUES: Value[] = [
 ];
 
 type UserIngredients = {
-  selectedValues: Value[];
-  topValues: Value[];
+  selectedValues: SelectedValue[];
   stage: IngredientStage;
 };
 
 const EMPTY_INGREDIENTS: UserIngredients = {
   selectedValues: [],
-  topValues: [],
   stage: 'selection',
 };
 
@@ -149,34 +152,33 @@ export default function Ingredientes() {
   function updateIngredients(
     update: Partial<UserIngredients>
   ) {
-    setIngredients(current => {
-      const updated = {
-        ...current,
-        ...update,
-      };
-
-      saveUserIngredients(updated);
-
-      return updated;
-    });
+    setIngredients(current => ({
+      ...current,
+      ...update,
+    }));
   }
 
   function toggleValue(value: Value) {
     setIngredients(current => {
-      const isSelected = current.selectedValues.includes(value);
+      const isSelected = current.selectedValues.some(
+        item => item.value === value
+      );
 
-      const selectedValues = isSelected
-        ? current.selectedValues.filter(item => item !== value)
-        : [...current.selectedValues, value];
+      const updatedValues = isSelected
+        ? current.selectedValues.filter(item => item.value !== value)
+        : [
+            ...current.selectedValues,
+            { value, order: current.selectedValues.length + 1 },
+          ];
 
-      const topValues = isSelected
-        ? current.topValues.filter(item => item !== value)
-        : current.topValues;
+      const selectedValues = updatedValues.map((item, index) => ({
+        ...item,
+        order: index + 1,
+      }));
 
       return {
         ...current,
         selectedValues,
-        topValues,
       };
     });
   }
@@ -191,13 +193,13 @@ export default function Ingredientes() {
     });
   }
 
-  function confirmTopValues(topValues: Value[], completed: Boolean) {
-    if (topValues.length < 7) {
+  function confirmRanking(selectedValues: SelectedValue[], completed: boolean) {
+    if (selectedValues.length !== 7) {
       return;
     }
 
     updateIngredients({
-      topValues,
+      selectedValues: selectedValues,
       stage: completed ? 'completed' : 'ranking',
     });
   }
@@ -225,18 +227,21 @@ export default function Ingredientes() {
     case 'ranking':
       return <IngredientRanking 
           selectedValues={ingredients.selectedValues}
-          topValues={ingredients.topValues}
           onBack={editSelection}
-          onConfirm={confirmTopValues}
+          onConfirm={confirmRanking}
       />;
 
     case 'completed':
-      return <MyIngredients />;
+      return <MyIngredients 
+          selectedValues={ingredients.selectedValues}
+          onBack={editSelection}
+          onConfirm={confirmRanking}
+      />;
   }
 }
 
 type IngredientSelectionProps = {
-  selectedValues: Value[];
+  selectedValues: SelectedValue[];
   onToggleValue: (value: Value) => void;
   onConfirm: () => void;
 };
@@ -246,8 +251,8 @@ function IngredientSelection({
   onToggleValue,
   onConfirm
 }: IngredientSelectionProps) {
-  const sortedSelectedValues = selectedValues && [...selectedValues].sort((a, b) =>
-    a?.localeCompare(b, 'pt-BR')
+  const sortedSelectedValues = [...selectedValues].sort(
+    (a, b) => a.value.localeCompare(b.value, 'pt-BR')
   );
 
   const canContinue = selectedValues.length === 7;
@@ -269,12 +274,12 @@ function IngredientSelection({
           style={styles.selectedScroll}
           contentContainerStyle={styles.selectedChips}
         >
-          {sortedSelectedValues.map(value => (
+          {sortedSelectedValues.map(item => (
             <Chip
-              key={value}
-              label={value}
+              key={item.value}
+              label={item.value}
               selected
-              onPress={() => onToggleValue(value)}
+              onPress={() => onToggleValue(item.value)}
             />
           ))}
         </ScrollView>
@@ -286,13 +291,14 @@ function IngredientSelection({
         contentContainerStyle={styles.chipsContent}
       >
         {AVAILABLE_VALUES.map(value => {
-          const selected = selectedValues.includes(value);
-
+          const selected = selectedValues.some(
+              item => item.value === value
+            );
           return (
             <Chip
               key={value}
               label={value}
-              selected={selectedValues.includes(value)}
+              selected={selected}
               onPress={() => {
                 if (selected || selectedValues.length < 7) {
                   onToggleValue(value);
@@ -318,56 +324,109 @@ function IngredientSelection({
 }
 
 type IngredientRankingProps = {
-  selectedValues: Value[];
-  topValues: Value[];
+  selectedValues: SelectedValue[];
   onBack: () => void;
-  onConfirm: (topValues: Value[], completed: Boolean) => void;
+  onConfirm: (selectedValues: SelectedValue[], completed: boolean) => void;
 };
 
 function IngredientRanking({
   selectedValues,
-  topValues,
   onBack,
   onConfirm,
 }: IngredientRankingProps) {
   const [sortableValues, setSortableValues] = useState<SortableItem[]>(
     () =>
-      selectedValues.map((value) => ({
-        id: value,
-        label: value,
-      }))
+      [...selectedValues]
+        .sort((a, b) => a.order - b.order)
+        .map(item => ({
+          id: item.value,
+          label: item.value,
+        }))
   );
-  function onReorder(data: SortableItem[]) {
+
+  function handleReorder(data: SortableItem[]) {
     setSortableValues(data);
-  };
+
+    const rankedValues: SelectedValue[] = data.map(
+      (item, index) => ({
+        value: item.id,
+        order: index + 1,
+      })
+    );
+
+    onConfirm(rankedValues, false);
+  }
+
+  function handleConfirm() {
+    onConfirm(sortableValues.map((item, index) => ({
+      value: item.id,
+      order: index + 1,
+    })), true);
+  }
+
   return (
-    <View  style={styles.container}>
+    <View style={styles.container}>
       <Text>Agora coloque em ordem de importância para você.</Text>
       <Text> </Text>
+
       <SortableList
         data={sortableValues}
-        onReorder={onReorder}
+        onReorder={handleReorder}
       />
+
       <View style={styles.buttonsContainer}>
-        <Pressable style={({ hovered }) => [
-          styles.button,
-          hovered && styles.buttonHover
-        ]} onPress={onBack}>
+        <Pressable
+          style={({ hovered }) => [
+            styles.button,
+            hovered && styles.buttonHover,
+          ]}
+          onPress={onBack}
+        >
           <Text style={styles.buttonText}>Voltar</Text>
         </Pressable>
-        <Pressable style={({ hovered }) => [
-          styles.button,
-          hovered && styles.buttonHover
-        ]} onPress={onConfirm}>
-          <Text style={styles.buttonText}>Continuar</Text>
+
+        <Pressable
+          style={({ hovered }) => [
+            styles.button,
+            hovered && styles.buttonHover,
+          ]}
+          onPress={handleConfirm}
+        >
+          <Text style={styles.buttonText}>Avançar</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+type MyIngredientsProps = {
+  selectedValues: SelectedValue[];
+  onBack: () => void;
+  onConfirm: (selectedValues: SelectedValue[], completed: boolean) => void;
+};
+
+function MyIngredients({
+  selectedValues,
+  onBack,
+  onConfirm,
+}: MyIngredientsProps) {
+  return (
+    <View>
+      <Text>Meus Ingredientes</Text>
+      <Text> </Text>
+      <View style={styles.buttonsContainer}>
+        <Pressable
+          style={({ hovered }) => [
+            styles.button,
+            hovered && styles.buttonHover,
+          ]}
+          onPress={onBack}
+        >
+          <Text style={styles.buttonText}>Voltar</Text>
         </Pressable>
       </View>
     </View>
   )
-}
-
-function MyIngredients() {
-  return <Text>Meus Ingredientes</Text>
 }
 
 const styles = StyleSheet.create({  
