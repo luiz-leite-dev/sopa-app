@@ -1,3 +1,4 @@
+import { BORDER_RADIUS } from '@/constants/Components';
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
 
     paddingHorizontal: 16,
 
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS,
     backgroundColor: '#FFF',
   },
 

@@ -1,5 +1,8 @@
 
-import { ScrollView, Text, View } from '@/components/Themed';
+import { ScrollView, SubText, Text, View } from '@/components/Themed';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
+import { BORDER_RADIUS } from '@/constants/Components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -37,6 +40,7 @@ const EMPTY_RECIPE: Recipe = {
 type SelectorType = 'main' | 'secondary' | null;
 
 export default function Receita() {
+  const colorScheme = useColorScheme();
   const scrollViewRef = useRef<NativeScrollView>(null);
   const router = useRouter();
 
@@ -209,15 +213,17 @@ export default function Receita() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ingrediente principal</Text>
 
-            <Text style={styles.instruction}>
+            <SubText style={styles.instruction}>
               Qual valor você quer desenvolver nesta semana?
-            </Text>
+            </SubText>
 
             <Pressable
               style={({ pressed }) => [
                 styles.selectField,
                 pressed && styles.fieldPressed,
-              ]}
+                { borderColor: Colors[colorScheme].border },
+                { backgroundColor: Colors[colorScheme].inputBackground }
+              ]}              
               onPress={() => setSelector('main')}
               accessibilityRole="button"
               accessibilityLabel={`Ingrediente principal: ${mainLabel}`}
@@ -225,7 +231,7 @@ export default function Receita() {
               <Text
                 style={[
                   styles.selectText,
-                  !recipe.mainIngredient && styles.placeholder,
+                  !recipe.mainIngredient && { color: Colors[colorScheme].placeholder },
                 ]}
               >
                 {mainLabel}
@@ -237,15 +243,17 @@ export default function Receita() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Pitadas especiais</Text>
 
-            <Text style={styles.instruction}>
+            <SubText style={styles.instruction}>
               Quais outros valores podem complementar sua receita?
               (Opcional)
-            </Text>
+            </SubText>
 
             <Pressable
               style={({ pressed }) => [
                 styles.selectField,
                 pressed && styles.fieldPressed,
+                { borderColor: Colors[colorScheme].border },
+                { backgroundColor: Colors[colorScheme].inputBackground }
               ]}
               onPress={() => setSelector('secondary')}
               accessibilityRole="button"
@@ -254,7 +262,7 @@ export default function Receita() {
                 style={[
                   styles.selectText,
                   recipe.secondaryIngredients.length === 0 &&
-                    styles.placeholder,
+                    { color: Colors[colorScheme].placeholder },
                 ]}
               >
                 {recipe.secondaryIngredients.length === 0
@@ -285,12 +293,16 @@ export default function Receita() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Meu objetivo</Text>
 
-            <Text style={styles.instruction}>
+            <SubText style={styles.instruction}>
               O que você deseja colocar em prática nesta semana?
-            </Text>
+            </SubText>
 
             <TextInput
-              style={styles.goalInput}
+              style={[
+                styles.goalInput,
+                { borderColor: Colors[colorScheme].border },
+                { backgroundColor: Colors[colorScheme].inputBackground }
+              ]}
               value={recipe.weeklyGoal}
               onChangeText={weeklyGoal =>
                 updateRecipe({ ...recipe, weeklyGoal })
@@ -300,7 +312,7 @@ export default function Receita() {
                   scrollViewRef.current?.scrollToEnd({
                     animated: false,
                   });
-                }, 50);
+                }, 300);
               }}
               placeholder="Ex.: Ter mais paciência com minha família, mesmo nos momentos difíceis."
               placeholderTextColor="#888"
@@ -322,10 +334,10 @@ export default function Receita() {
         </NativeScrollView>
 
         <Pressable
-          style={({ pressed }) => [
+          style={[
             styles.continueButton,
-            !canContinue && styles.buttonDisabled,
-            canContinue && pressed && styles.buttonPressed,
+            !canContinue && styles.buttonDisabled,            
+            { backgroundColor: Colors[colorScheme].primaryButton },
           ]}
           onPress={
             canContinue ? continueToSpoonful : undefined
@@ -488,13 +500,11 @@ const styles = StyleSheet.create({
       default: 14,
     }),
     lineHeight: 20,
-    color: '#777',
   },
   selectField: {
     minHeight: 50,
     borderWidth: 1,
-    borderColor: '#999',
-    borderRadius: 8,
+    borderRadius: BORDER_RADIUS,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -507,9 +517,6 @@ const styles = StyleSheet.create({
   selectText: {
     fontSize: 15,
     flex: 1,
-  },
-  placeholder: {
-    color: '#888',
   },
   chevron: {
     fontSize: 24,
@@ -548,12 +555,10 @@ const styles = StyleSheet.create({
   goalInput: {
     minHeight: 105,
     borderWidth: 1,
-    borderColor: '#999',
-    borderRadius: 8,
+    borderRadius: BORDER_RADIUS,
     padding: 12,
     fontSize: 15,
     lineHeight: 21,
-    color: '#333',
   },
   clearButton: {
     alignSelf: 'center',
@@ -567,8 +572,7 @@ const styles = StyleSheet.create({
     minHeight: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: BORDER_RADIUS,
     padding: 12,
     marginTop: 10,
   },
@@ -629,7 +633,7 @@ const styles = StyleSheet.create({
   option: {
     minHeight: 48,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: BORDER_RADIUS,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -663,7 +667,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: BORDER_RADIUS,
     backgroundColor: '#cd933e',
     marginTop: 12,
   },

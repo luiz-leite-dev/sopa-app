@@ -1,8 +1,10 @@
 import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, Pressable, StyleSheet } from 'react-native';
+import { Platform, Pressable, StyleSheet, useColorScheme } from 'react-native';
 
 import { ScrollView, Text, View } from '@/components/Themed';
+import Colors from '@/constants/Colors';
+import { BORDER_RADIUS } from '@/constants/Components';
 
 const YOUVERSION_APP_URL = 'youversion://';
 const IOS_STORE_URL = 'https://apps.apple.com/br/app/b%C3%ADblia/id282935706';
@@ -31,10 +33,11 @@ async function abrirYouVersion() {
 }
 
 export function BotaoYouVersion() {
+  const colorScheme = useColorScheme();
   return (
-    <Pressable onPress={abrirYouVersion} style={({ hovered }) => [
+    <Pressable onPress={abrirYouVersion} style={[
         styles.botao,
-        hovered && styles.botao_hover,
+        { backgroundColor: Colors[colorScheme].primaryButton },
       ]}>
       <Text style={styles.botao_text}>Conhecer Jesus através da Bíblia.</Text>
     </Pressable>
@@ -90,6 +93,7 @@ export default function ModalScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
   },
   title: {
     marginTop: 30,
@@ -128,8 +132,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: BORDER_RADIUS,
     alignItems: 'center',
   },
   botao_text: {
@@ -138,7 +141,4 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: 'justify',
   },
-  botao_hover: {
-    backgroundColor: '#f3a040ff',
-  }
 });

@@ -1,4 +1,7 @@
 import { Text, View } from '@/components/Themed';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
+import { BORDER_RADIUS } from '@/constants/Components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -14,6 +17,7 @@ const opcoes = [
 ];
 
 export default function Inicio() {
+  const colorScheme = useColorScheme();
   const [identificacaoUsuario, setIdentificacaoUsuario] = useState<string | null>(null);
   const router = useRouter();
 
@@ -70,7 +74,7 @@ export default function Inicio() {
               accessibilityRole="radio"
               accessibilityState={{ checked: selecionado }}
             >
-              <View style={[styles.circulo, selecionado && styles.circuloSelecionado]} />
+              <View style={[styles.circulo, selecionado && styles.circuloSelecionado && { backgroundColor: Colors[colorScheme].primaryButton }]} />
               <Text style={styles.label}>{opcao.label}</Text>
             </Pressable>
           );
@@ -78,9 +82,9 @@ export default function Inicio() {
       </View>
       <View>
         <Pressable
-          style={({ hovered }) => [
+          style={[
             styles.button,
-            hovered && styles.buttonHover,
+            { backgroundColor: Colors[colorScheme].primaryButton },
           ]}
           onPress={() => router.navigate('/ingredientes')}
         >
@@ -94,16 +98,12 @@ export default function Inicio() {
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: BORDER_RADIUS,
     padding: 12,
     textAlign: 'center',
     fontWeight: '600',
     maxHeight: 50,
     minHeight: 50,
-  },
-  buttonHover: {
-    backgroundColor: '#f3a040ff',
   },
   buttonText: {
     fontWeight: 'bold',

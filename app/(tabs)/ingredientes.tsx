@@ -1,6 +1,9 @@
 import { Chip } from '@/components/Chip';
 import { SortableItem, SortableList } from '@/components/SortableList';
 import { ScrollView, Text, View } from '@/components/Themed';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
+import { BORDER_RADIUS } from '@/constants/Components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -28,15 +31,13 @@ const AVAILABLE_VALUES: Value[] = [
   'Autocontrole',
   'Bondade',
   'Cidadania',
-  'Castidade',
   'Compaixão',
-  'Comunhão',
   'Conhecimento',
   'Confiança',
-  'Contentamento',
   'Coragem',
   'Criatividade',
   'Dedicação',
+  'Desafio',
   'Desapego',
   'Deus',
   'Discernimento',
@@ -45,8 +46,9 @@ const AVAILABLE_VALUES: Value[] = [
   'Esperança',
   'Espiritualidade',
   'Estabilidade',
-  'Fé',
+  'Excelência',
   'Família',
+  'Fé',
   'Fidelidade',
   'Força',
   'Fraternidade',
@@ -60,6 +62,7 @@ const AVAILABLE_VALUES: Value[] = [
   'Humildade',
   'Igualdade',
   'Imparcialidade',
+  'Inovação',
   'Integridade',
   'Justiça',
   'Lealdade',
@@ -70,23 +73,17 @@ const AVAILABLE_VALUES: Value[] = [
   'Obediência',
   'Paciência',
   'Paz',
-  'Perdão',
   'Perseverança',
   'Perspicácia',
   'Prudência',
   'Propósito',
-  'Pureza',
   'Retidão',
   'Responsabilidade',
-  'Sacrifício',
-  'Santidade',
   'Saúde',
   'Sabedoria',
   'Serviço',
-  'Submissão',
   'Temperança',
   'Trabalho',
-  'Unidade',
   'Verdade',
   'Zelo',
 ];
@@ -240,6 +237,7 @@ function IngredientSelection({
   onToggleValue,
   onConfirm
 }: IngredientSelectionProps) {
+  const colorScheme = useColorScheme();
   const sortedSelectedValues = [...selectedValues].sort(
     (a, b) => a.value.localeCompare(b.value, 'pt-BR')
   );
@@ -301,10 +299,10 @@ function IngredientSelection({
         </ScrollView>
       </View>
       <Pressable
-        style={({ hovered }) => [
+        style={[
           styles.button,
           !canContinue && styles.buttonDisabled,
-          canContinue && hovered && styles.buttonHover,
+          { backgroundColor: Colors[colorScheme].primaryButton },
         ]}
         onPress={canContinue ? onConfirm : undefined}
       >
@@ -325,6 +323,7 @@ function IngredientRanking({
   onBack,
   onConfirm,
 }: IngredientRankingProps) {
+  const colorScheme = useColorScheme();
   const [sortableValues, setSortableValues] = useState<SortableItem[]>(
     () =>
       [...selectedValues]
@@ -371,9 +370,9 @@ function IngredientRanking({
 
       <View style={styles.buttonsContainer}>
         <Pressable
-          style={({ hovered }) => [
+          style={[
             styles.button,
-            hovered && styles.buttonHover,
+            { backgroundColor: Colors[colorScheme].secondaryButton },
           ]}
           onPress={onBack}
         >
@@ -381,9 +380,9 @@ function IngredientRanking({
         </Pressable>
 
         <Pressable
-          style={({ hovered }) => [
+          style={[
             styles.button,
-            hovered && styles.buttonHover,
+            { backgroundColor: Colors[colorScheme].primaryButton },
           ]}
           onPress={handleConfirm}
         >
@@ -395,9 +394,6 @@ function IngredientRanking({
 }
 
 const styles = StyleSheet.create({
-  buttonHover: {
-    backgroundColor: '#f3a040ff',
-  },
   buttonsContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -410,8 +406,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: BORDER_RADIUS,
     padding: 12,
     textAlign: 'center',
     fontWeight: '600',
