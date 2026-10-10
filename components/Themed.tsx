@@ -37,6 +37,13 @@ export function Text(props: TextProps) {
   return <DefaultText style={[{ color, fontFamily: 'Fredoka' }, style]} {...otherProps} />;
 }
 
+export function SubText(props: TextProps) {
+  const { style, lightColor, darkColor, ...otherProps } = props;
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'subText');
+
+  return <DefaultText style={[{ color, fontFamily: 'Fredoka' }, style]} {...otherProps} />;
+}
+
 export function View(props: ViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
