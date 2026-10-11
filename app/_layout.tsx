@@ -1,7 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import {
+  DarkTheme,
+  DefaultTheme,
+  Stack,
+  ThemeProvider,
+  useRootNavigationState,
+  useRouter,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
@@ -17,6 +25,9 @@ export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
+const INGREDIENTS_STORAGE_KEY = '@SOPA:ingredients';
+const RECIPE_STORAGE_KEY = '@SOPA:recipe';
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -25,16 +36,67 @@ export default function RootLayout() {
     Fredoka: require('../assets/fonts/Fredoka.ttf'),
   });
 
+  const [redirectReady, setRedirectReady] = useState(false);
+
+  const router = useRouter();
+  const navigationState = useRootNavigationState();
+  const redirected = useRef(false);
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (!loaded || !navigationState?.key || redirected.current) {
+      return;
     }
-  }, [loaded]);
+
+    async function redirectInitialRoute() {
+      try {
+        const [ingredientsData, recipeData] = await Promise.all([
+          AsyncStorage.getItem(INGREDIENTS_STORAGE_KEY),
+          AsyncStorage.getItem(RECIPE_STORAGE_KEY),
+        ]);
+
+        const ingredients = ingredientsData
+          ? JSON.parse(ingredientsData)
+          : null;
+
+        const recipe = recipeData
+          ? JSON.parse(recipeData)
+          : null;
+
+        const selectedValues = ingredients?.selectedValues ?? [];
+
+        if (recipe?.mainIngredient && recipe?.weeklyGoal?.trim()) {
+          router.replace('/colherada');
+        } else if (selectedValues.length > 0) {
+          if (ingredients?.stage === 'completed') {
+            router.replace('/receita');
+          } else {
+            router.replace('/ingredientes');
+          }
+        }
+      } catch (error) {
+        console.error(
+          'Erro ao verificar progresso inicial:',
+          error
+        );
+      } finally {
+        redirected.current = true;
+        setRedirectReady(true);
+      }
+    }
+
+    void redirectInitialRoute();
+  }, [loaded, navigationState?.key]);
+
+  useEffect(() => {
+    if (loaded && redirectReady) {
+      void SplashScreen.hideAsync();
+    }
+  }, [loaded, redirectReady]);
 
   if (!loaded) {
     return null;

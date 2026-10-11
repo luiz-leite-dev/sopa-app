@@ -3,13 +3,13 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useEffect, useRef, useState } from 'react';
 import {
-    Modal,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 type TimePickerProps = {
@@ -300,10 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     elevation: 8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.18)',
     userSelect: 'none',
   },
   title: {

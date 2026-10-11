@@ -12,6 +12,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme].primaryButton,
         tabBarLabelStyle: {
           fontFamily: 'Fredoka',
         },
