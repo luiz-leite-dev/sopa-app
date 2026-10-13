@@ -3,7 +3,7 @@ import TimePicker from '@/components/TimePicker';
 import Colors from '@/constants/Colors';
 import { BORDER_RADIUS } from '@/constants/Components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import * as Notifications from 'expo-notifications';
+import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -44,15 +44,15 @@ function showAlert(title: string, message: string) {
   }
 }
 
-// function getScheduledDate(time: string, minutesBefore = 0) {
-//   const [hours, minutes] = time.split(':').map(Number);
-//   const date = new Date();
+function getScheduledDate(time: string, minutesBefore = 0) {
+  const [hours, minutes] = time.split(':').map(Number);
+  const date = new Date();
 
-//   date.setHours(hours, minutes, 0, 0);
-//   date.setMinutes(date.getMinutes() - minutesBefore);
+  date.setHours(hours, minutes, 0, 0);
+  date.setMinutes(date.getMinutes() - minutesBefore);
 
-//   return date;
-// }
+  return date;
+}
 
 export default function ColheradaScreen() {
   const colorScheme = useColorScheme();
@@ -90,54 +90,67 @@ export default function ColheradaScreen() {
     loadColherada();
   }, [loadColherada]);
 
-  // async function requestNotificationPermission() {
-  //   const current = await Notifications.getPermissionsAsync();
+  async function requestNotificationPermission() {
+    const current = await Notifications.getPermissionsAsync();
 
-  //   if (current.granted) {
-  //     return true;
-  //   }
+    if (current.granted) {
+      return true;
+    }
 
-  //   const requested = await Notifications.requestPermissionsAsync();
-  //   return requested.granted;
-  // }
+    const requested = await Notifications.requestPermissionsAsync();
+    return requested.granted;
+  }
 
-  // async function scheduleReminder(
-  //   actionText: string,
-  //   actionTime: string,
-  //   minutesBefore: number,
-  // ) {
-  //   const reminderDate = getScheduledDate(
-  //     actionTime,
-  //     minutesBefore,
-  //   );
+  async function scheduleReminder(
+    actionText: string,
+    actionTime: string,
+    minutesBefore: number,
+  ) {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync(
+        'sopa-reminders',
+        {
+          name: 'Lembretes do SOPA',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+        },
+      );
+    }
 
-  //   if (reminderDate.getTime() <= Date.now()) {
-  //     throw new Error(
-  //       'O horário do alerta já passou. Escolha um horário futuro ou desative o alerta.',
-  //     );
-  //   }
+    const reminderDate = getScheduledDate(
+      actionTime,
+      minutesBefore,
+    );
 
-  //   const hasPermission = await requestNotificationPermission();
+    if (reminderDate.getTime() <= Date.now()) {
+      throw new Error(
+        'O horário do alerta já passou. Escolha um horário futuro ou desative o alerta.',
+      );
+    }
 
-  //   if (!hasPermission) {
-  //     throw new Error(
-  //       'A permissão para notificações não foi concedida.',
-  //     );
-  //   }
+    const hasPermission = await requestNotificationPermission();
 
-  //   return Notifications.scheduleNotificationAsync({
-  //     content: {
-  //       title: 'Sua colherada está chegando!',
-  //       body: actionText,
-  //       sound: true,
-  //       data: { screen: 'colherada' },
-  //     },
-  //     trigger: {
-  //       type: Notifications.SchedulableTriggerInputTypes.DATE,
-  //       date: reminderDate,
-  //     },
-  //   });
-  // }
+    if (!hasPermission) {
+      throw new Error(
+        'A permissão para notificações não foi concedida.',
+      );
+    }
+
+    return Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Sua colherada está chegando!',
+        body: actionText,
+        data: { screen: 'colherada' },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: reminderDate,
+        ...(Platform.OS === 'android'
+          ? { channelId: 'sopa-reminders' }
+          : {}),
+      },
+    });
+  }
 
   async function handleSave() {
     if (!action.trim()) {
@@ -156,22 +169,24 @@ export default function ColheradaScreen() {
     setSaving(true);
 
     try {
-      // let notificationId: string | undefined;
+      let notificationId: string | undefined;
 
-      // if (alertEnabled) {
-      //   notificationId = await scheduleReminder(
-      //     action.trim(),
-      //     time,
-      //     alertMinutes,
-      //   );
-      // }
+      if (alertMinutes !== null) {
+        notificationId = await scheduleReminder(
+          action.trim(),
+          time,
+          alertMinutes,
+        );
+        const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+        console.log('Notificações agendadas:', scheduled);
+      }
 
       const newColherada: Colherada = {
         action: action.trim(),
         time,
         alertEnabled: alertMinutes !== null,
         alertMinutes: alertMinutes ?? 0,
-        // notificationId,
+        notificationId,
       };
 
       await AsyncStorage.setItem(
@@ -198,11 +213,11 @@ export default function ColheradaScreen() {
     setSaving(true);
 
     try {
-      // if (colherada.notificationId) {
-      //   await Notifications.cancelScheduledNotificationAsync(
-      //     colherada.notificationId,
-      //   );
-      // }
+      if (colherada.notificationId) {
+        await Notifications.cancelScheduledNotificationAsync(
+          colherada.notificationId,
+        );
+      }
 
       await AsyncStorage.removeItem(STORAGE_KEY);
 
@@ -305,42 +320,46 @@ export default function ColheradaScreen() {
                 value={time}
                 onChange={setTime}
               />
-              <SubText style={styles.helperText}>
-                Quer ser lembrado quantos minutos antes? (Opcional)
-              </SubText>
+              { Platform.OS !== 'web' && (
+                <View>
+                  <SubText style={styles.helperText}>
+                    Quer ser lembrado quantos minutos antes? (Opcional)
+                  </SubText>
 
-              <View style={styles.chipContainer}>
-                {ALERT_OPTIONS.map((minutes) => {
-                  const selected = alertMinutes === minutes;
+                  <View style={styles.chipContainer}>
+                    {ALERT_OPTIONS.map((minutes) => {
+                      const selected = alertMinutes === minutes;
 
-                  return (
-                    <Pressable
-                      key={minutes}
-                      onPress={() =>
-                        setAlertMinutes((current) =>
-                          current === minutes ? null : minutes
-                        )
-                      }
-                      style={[
-                        styles.chip,
-                        selected && { backgroundColor: Colors[colorScheme].primaryButton },
-                        !selected && { backgroundColor: Colors[colorScheme].secondaryButton },
-                      ]}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected }}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          selected && styles.chipTextSelected,
-                        ]}
-                      >
-                        {minutes} min
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+                      return (
+                        <Pressable
+                          key={minutes}
+                          onPress={() =>
+                            setAlertMinutes((current) =>
+                              current === minutes ? null : minutes
+                            )
+                          }
+                          style={[
+                            styles.chip,
+                            selected && { backgroundColor: Colors[colorScheme].primaryButton },
+                            !selected && { backgroundColor: Colors[colorScheme].secondaryButton },
+                          ]}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected }}
+                        >
+                          <Text
+                            style={[
+                              styles.chipText,
+                              selected && styles.chipTextSelected,
+                            ]}
+                          >
+                            {minutes} min
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
             </View>
           )}
         </ScrollView>

@@ -1,4 +1,4 @@
-import { Text, View } from '@/components/Themed';
+import { ScrollView, Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { BORDER_RADIUS } from '@/constants/Components';
@@ -57,13 +57,13 @@ export default function Inicio() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView style={styles.content}>
         <Text style={styles.paragraph}>Bem-vindo à Sopa.</Text>
         <Text style={styles.paragraph}>Este é um espaço para alimentar sua alma com valores, sentido e esperança.</Text>
         <Text style={styles.paragraph}>Sopa é inspirado nos ensinamentos de Jesus, que disse: ‘Vós sois o sal da terra’.</Text>
         <Text style={styles.paragraph}>Se você é cristão, vai encontrar aqui um apoio para viver sua fé no dia a dia.</Text>
         <Text style={styles.paragraph}>Se você não é cristão, mas busca mais sentido, paz e direção, este lugar também é para você.</Text>
-        <Text style={styles.paragraph}>Como você se identifica hoje?</Text>
+        {/* <Text style={styles.paragraph}>Como você se identifica hoje?</Text>
         {opcoes.map((opcao) => {
           const selecionado = identificacaoUsuario === opcao.id;
           return (
@@ -78,8 +78,8 @@ export default function Inicio() {
               <Text style={styles.label}>{opcao.label}</Text>
             </Pressable>
           );
-        })}
-      </View>
+        })} */}
+      </ScrollView>
       <View>
         <Pressable
           style={[

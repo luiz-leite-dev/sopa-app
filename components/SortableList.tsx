@@ -22,7 +22,7 @@ type SortableListProps = {
   onReorder: (data: SortableItem[]) => void;
 };
 
-const ITEM_HEIGHT = 55;
+const ITEM_HEIGHT = 45;
 const ITEM_GAP = 8;
 const ITEM_STEP = ITEM_HEIGHT + ITEM_GAP;
 
