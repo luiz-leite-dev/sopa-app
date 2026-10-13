@@ -5,6 +5,7 @@ import { ChiRhoIcon } from '@/components/icons/ChiRhoIcon';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -15,6 +16,11 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme].primaryButton,
         tabBarLabelStyle: {
           fontFamily: 'Fredoka',
+        },
+        tabBarStyle: {
+          height: 50,
+          paddingTop: 0,
+          paddingBottom: 0,
         },
         headerTitleStyle: {
           fontFamily: 'Fredoka',
@@ -28,7 +34,9 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Início',
-          tabBarIcon: () => null,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="home" color={color} size={size} />
+          ),
           headerRight: () => (
             <Link href="/cristo" asChild>
               <Pressable style={{ marginRight: 15 }}>
@@ -48,21 +56,27 @@ export default function TabLayout() {
         name="ingredientes"
         options={{
           title: 'Ingredientes',
-          tabBarIcon: () => null,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="checklist" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
         name="receita"
         options={{
           title: 'Receita',
-          tabBarIcon: () => null,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="description" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
         name="colherada"
         options={{
           title: 'Colherada',
-          tabBarIcon: () => null,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="restaurant" color={color} size={size} />
+          ),
         }}
       />
     </Tabs>
